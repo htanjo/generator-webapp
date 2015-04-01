@@ -18,6 +18,9 @@ module.exports = function (grunt) {
   // Load grunt tasks automatically
   require('load-grunt-tasks')(grunt);
 
+  // Load additional task
+  grunt.loadNpmTasks('main-bower-files');
+
   // Configurable paths
   var config = {
     app: 'app',
@@ -374,21 +377,7 @@ module.exports = function (grunt) {
             '{,*/}*.html',
             'styles/fonts/{,*/}*.*'
           ]
-        }<% if (includeBootstrap) { %>, {
-          expand: true,
-          dot: true,
-          cwd: '<% if (includeSass) {
-              %>.<%
-            } else {
-              %>bower_components/bootstrap/dist<%
-            } %>',
-          src: '<% if (includeSass) {
-              %>bower_components/bootstrap-sass-official/assets/fonts/bootstrap/*<%
-            } else {
-              %>fonts/*<%
-            } %>',
-          dest: '<%%= config.dist %>'
-        }<% } %>]
+        }]
       }<% if (!includeSass) { %>,
       styles: {
         expand: true,
@@ -397,6 +386,22 @@ module.exports = function (grunt) {
         dest: '.tmp/styles/',
         src: '{,*/}*.css'
       }<% } %>
+    },
+
+    // Copies main files from installed bower packages
+    bower: {
+      dist: {
+        dest: '<%%= config.dist %>/fonts',
+        options: {
+          filter: '**/*.{eot,svg,ttf,woff,woff2}'
+        }
+      },
+      server: {
+        dest: '.tmp/fonts',
+        options: {
+          filter: '**/*.{eot,svg,ttf,woff,woff2}'
+        }
+      }
     },<% if (includeModernizr) { %>
 
     // Generates a custom Modernizr build that includes only the tests you
@@ -421,7 +426,8 @@ module.exports = function (grunt) {
       server: [<% if (coffee) {  %>
         'coffee:dist'<% } %><% if (coffee && includeSass) {  %>,<% } %><% if (includeSass) { %>
         'sass:server'<% } else { %>
-        'copy:styles'<% } %>
+        'copy:styles'<% } %>,
+        'bower:server'
       ],
       test: [<% if (coffee) { %>
         'coffee',<% } %><% if (coffee && !includeSass) {  %>,<% } %><% if (!includeSass) { %>
@@ -486,7 +492,8 @@ module.exports = function (grunt) {
     'concat',
     'cssmin',
     'uglify',
-    'copy:dist',<% if (includeModernizr) { %>
+    'copy:dist',
+    'bower:server',<% if (includeModernizr) { %>
     'modernizr',<% } %>
     'filerev',
     'usemin',
